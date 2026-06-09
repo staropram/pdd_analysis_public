@@ -1,0 +1,7 @@
+source("01_create_discharge_journey_reasons_ndtms2.R")
+source("02_add_linkage_fields_ndtms2.R")
+source("03_make_linkable_ndtms_ndtms2.R")
+source("04_linkage_placeholder_ndtms2.R")
+source("05_make_unique_link_map_ndtms2.R")
+source("06_subset_ndtms_to_only_those_linked_ndtms2.R")
+source("07_merge_linked_data_with_pfd_ndtms2.R")
