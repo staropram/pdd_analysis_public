@@ -36,43 +36,27 @@ and Diversion (PDD) project
     analysis datasets
 -   `imputation` Bayesian imputation code, as well as legacy code from alternative matching approach
 
-# Accessing final analysis datasets
+# Pipeline overview
 
-It is probable that you might only need to access final analysis
-datasets.
+There is a script `master_scripts/run_everything.R` which will execute  all the steps outlined below. Do not do this unless you need to regenerate everything as it will take quite a while. Three of the main processes are explained below, but there are others in their respective directories.
 
-Once you have `file_paths.R` setup and working, if you import this, you
-will expose the abstract mapped names of data on the secure drive. The
-most important ones are:
+### Police Force Data Cleaning (`input_cleaning/police_force_data/00_process_all.R`)
 
-1.  `PFD_analysis_full` This is is the filename of a `feather` file for
-    the fully cleaned and consolidated police force data, consolidated
-    in a single file, with linked NDTMS fields included, but stripped of
-    identifiers. This is what you should use for most analysis
+1.  Load in each raw police-force supplied excel file and partially
+    clean it: this entails joining together different excel sheets,
+    normalising all the column names, and removing erroneous data.
+2.  Join together the normalised police-force data and clean it: 
 
-# Process to go from raw police force data to final analysis datasets
+    i) Normalise ethnicity data to coarse ethnicity categories.
+    ii) Normalise offence data to valid home office offence codes. 
+    iii) Normalise drug offence data to named drugs. 
+    iv) Normalise outcome types to valid home office outcome codes.
+    v) Reduce multi-crime incidents to a single incident each
+    vi) Create censorship windows for each incident.
+    vii) Merge in any force-level variables such as per capita spending on policing.
+        
 
-There is a script `master_scripts/run_everything.R` which will execute
-all the steps outlined below. Do not do this unless you need to
-regenerate everything as it will take quite a while.
-does:
-
-The script `00_process_all.R` is executed from within `input_cleaning/police_force_data` this will itself call a bunch of scripts to perform the following steps:
-
-    1.  Load in each raw police-force supplied excel file and partially
-        clean it: this entails joining together different excel sheets,
-        normalising all the column names, and removing erroneous data.
-    2.  Join together the normalised police-force data and clean it: 
-    
-        i) Normalise ethnicity data to coarse ethnicity categories.
-        ii) Normalise offence data to valid home office offence codes. 
-        iii) Normalise drug offence data to named drugs. 
-        iv) Normalise outcome types to valid home office outcome codes.
-        v) Reduce multi-crime incidents to a single incident each
-        vi) Create censorship windows for each incident.
-        vii) Merge in any force-level variables such as per capita spending on policing.
-
-The script `00_process_all.R` is executed from within `linkage/ndtms` this will itself call a bunch of scripts to perform the following steps:
+### 2. NDTMS Linkage (`linkage/ndtms/00_process_all.R`)
 
 1.  Create journey-level discharge reasons for each episode in NDTMS
     using the parent journey dischanrge reason
@@ -93,6 +77,15 @@ The script `00_process_all.R` is executed from within `linkage/ndtms` this will 
     that does this is called `07_merge_linked_data_with_pfd.R`
 
     
-The script `create_matched_controls.R` is executed from within `matching` to create matched controls for each intervention force / group combination. It checks the control reuse percentage for each `K` and each intervention force / group combination and selects the `K` that maximises the analysis data cardinality without exceeding 30% reuse. Note that the script `rejoing_matched_rows.R` can be executed to rejoin the police force data based on the matches without re-running
+### 3. Matched Control Selection (`matching/create_matched_controls.R`)
+- Generates matched controls for each intervention force and group combination.
+- Evaluates control reuse percentages across potential ratio values ($K$).
+- Selects the optimal $K$ that maximises analytical cardinality while maintaining a maximum control reuse threshold of 30%.
+- Matched indices can be rejoined onto the primary dataset using `rejoining_matched_rows.R`.
 
-We also need imputation etc. At some point the "run everything from one place" approach broke down due to time constraints and changing requirements, but generally each directory has a self-contained series of operations as sequentially numbered scripts.
+
+# Data availability and governance notice
+
+Due to data governance protocols and sensitive system configurations across the Ministry of Justice (MOJ), Department of Health and Social Care (DHSC), and participating police forces, raw administrative data, import and export scripts, and scripts processing PNC data are not included in this public repository. 
+
+This repository is provided for **methodological transparency** and documents the analytical logic downstream of the final linked, de-identified analytical dataset.
